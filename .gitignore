@@ -34,3 +34,6 @@ src
 
 # Ignore generated apache config files
 etc/*.apache.conf
+
+# Ignore Emacs backup files
+*~
