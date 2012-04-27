@@ -5,4 +5,4 @@ Changelog of lizard-validation
 0.1 (unreleased)
 ----------------
 
-- Initial library skeleton created by nensskel.  [your name]
+- Adds the functionality to compute and view differences in ESF configurations.
