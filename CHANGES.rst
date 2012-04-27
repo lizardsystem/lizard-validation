@@ -5,7 +5,7 @@ Changelog of lizard-validation
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Adds the binary file that contains the translated user-visible strings.
 
 
 0.1 (2012-04-27)
