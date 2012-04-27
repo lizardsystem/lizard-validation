@@ -45,8 +45,8 @@ class ConfigComparer(object):
 
     def compare(self, config):
         """Return the differences for the given configuration."""
-        candidate = self.get_candidate_config_as_dict(self, config)
-        current = self.get_current_config_as_dict(self, config)
+        candidate = self.get_candidate_config_as_dict(config)
+        current = self.get_current_config_as_dict(config)
         diff = Diff()
         for area_ident, area_attrs in candidate.items():
             try:
@@ -95,7 +95,14 @@ class AreaConfigDbf(object):
         value.
 
         """
-        return [rec for rec in dbf.Dbf(config.dbf_name)]
+        records = []
+        try:
+            records = [rec.asDict() for rec in dbf.Dbf(config.area_dbf)]
+        except IOError:
+            logger.warning("area configuration file '%s' does not exist",
+                           config.area_dbf)
+        return records
+
 
 
 class ESFConfig(AreaConfigDbf):
