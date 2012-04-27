@@ -37,3 +37,6 @@ etc/*.apache.conf
 
 # Ignore Emacs backup files
 *~
+
+# Ignore rope (Python refactoring) subdirectories
+.ropeproject
