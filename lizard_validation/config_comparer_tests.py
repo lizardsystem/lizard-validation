@@ -14,9 +14,9 @@ from django.utils.translation import ugettext as tr
 from mock import Mock
 
 from lizard_portal.configurations_retriever import ConfigurationToValidate
-from lizard_portal.config_comparer import AreaConfigDbf
-from lizard_portal.config_comparer import ConfigComparer
-from lizard_portal.config_comparer import Diff
+from lizard_validation.config_comparer import AreaConfigDbf
+from lizard_validation.config_comparer import ConfigComparer
+from lizard_validation.config_comparer import Diff
 
 
 logger = logging.getLogger(__name__)
@@ -35,8 +35,8 @@ class ConfigComparerTestSuite(TestCase):
 
         candidate_config = { '3201': { 'DIEPTE': '1.17' } }
         current_config = { '3201' : { 'DIEPTE': '1.18' } }
-        comparer.get_candidate_config_as_dict = lambda s, c: candidate_config
-        comparer.get_current_config_as_dict = lambda s, c: current_config
+        comparer.get_candidate_config_as_dict = lambda c: candidate_config
+        comparer.get_current_config_as_dict = lambda c: current_config
 
         diff = comparer.compare(config)
         expected_diff = Diff()
@@ -58,8 +58,8 @@ class ConfigComparerTestSuite(TestCase):
 
         candidate_config = { '3201': { 'DIEPTE': '1.17' } }
         current_config = { '3201' : {} }
-        comparer.get_candidate_config_as_dict = lambda s, c: candidate_config
-        comparer.get_current_config_as_dict = lambda s, c: current_config
+        comparer.get_candidate_config_as_dict = lambda c: candidate_config
+        comparer.get_current_config_as_dict = lambda c: current_config
 
         diff = comparer.compare(config)
         expected_diff = Diff()
@@ -82,8 +82,8 @@ class ConfigComparerTestSuite(TestCase):
 
         candidate_config = { '3201': { 'DIEPTE': '1.17' } }
         current_config = { }
-        comparer.get_candidate_config_as_dict = lambda s, c: candidate_config
-        comparer.get_current_config_as_dict = lambda s, c: current_config
+        comparer.get_candidate_config_as_dict = lambda c: candidate_config
+        comparer.get_current_config_as_dict = lambda c: current_config
 
         diff = comparer.compare(config)
         expected_diff = Diff()
@@ -97,8 +97,8 @@ class ConfigComparerTestSuite(TestCase):
 
         candidate_config = { '3201': { 'DIEPTE': '1.17' } }
         current_config = { '3201': { 'DIEPTE': '1.17' } }
-        comparer.get_candidate_config_as_dict = lambda s, c: candidate_config
-        comparer.get_current_config_as_dict = lambda s, c: current_config
+        comparer.get_candidate_config_as_dict = lambda c: candidate_config
+        comparer.get_current_config_as_dict = lambda c: current_config
 
         diff = comparer.compare(config)
         expected_diff = Diff()
