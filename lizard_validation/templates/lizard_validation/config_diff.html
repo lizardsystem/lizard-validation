@@ -1,0 +1,20 @@
+<div id="textual" class='lizard'>
+  <h2>{{type}} configuraties</h2>
+  {% for area, field_diffs in diff.items %}
+  <h3>{{name}}</h3>
+  <table class="lizard">
+    <thead>
+      <tr>
+        <th>veldnaam</th><th>nieuwe waarde</th><th>bestaande waarde</th>
+      </tr>
+      {% for name, value_diff in field_diffs.items %}
+      <tr>
+        <td>{{name}}</td><td>{{value_diff.0}}</td><td>{{value_diff.1}}</td>
+      </tr>
+      {% endfor %}
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  {% endfor %}
+</div>

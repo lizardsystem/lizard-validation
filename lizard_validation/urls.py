@@ -11,8 +11,9 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     url(r'^admin/', include(admin.site.urls)),
-    # url(r'^something/',
-    #     direct.import.views.some_method,
-    #     name="name_it"),
+
+    url(r'^diff/(?P<area_name>.*)/(?P<config_type>.*)',
+        'lizard_validation.views.view_config_diff',
+        name="diff"),
     )
 urlpatterns += debugmode_urlpatterns()
