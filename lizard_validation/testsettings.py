@@ -6,6 +6,9 @@ from lizard_ui.settingshelper import STATICFILES_FINDERS
 DEBUG = True
 TEMPLATE_DEBUG = True
 
+# let the test runner use syncdb instead of migrate
+SOUTH_TESTS_MIGRATE = False
+
 # SETTINGS_DIR allows media paths and so to be relative to this settings file
 # instead of hardcoded to c:\only\on\my\computer.
 SETTINGS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -39,6 +42,7 @@ DATABASES = {
     }
 SITE_ID = 1
 INSTALLED_APPS = [
+    'lizard_portal',
     'lizard_validation',
     'lizard_ui',
     'staticfiles',
