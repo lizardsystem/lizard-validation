@@ -7,7 +7,7 @@
 
 import logging
 
-from django.utils.translation import ugettext as tr
+from django.utils.translation import ugettext as _
 
 from dbfpy import dbf
 
@@ -55,7 +55,7 @@ class ConfigComparer(object):
                 diff.new_areas.append(area_ident)
                 continue
             for attr_name, attr_value in area_attrs.items():
-                current_attr_value = current_attrs.get(attr_name, tr('not present'))
+                current_attr_value = current_attrs.get(attr_name, _('not present'))
                 if attr_value != current_attr_value:
                     diff_for_key = diff.changed_areas.setdefault(area_ident, {})
                     diff_for_key[attr_name] = (attr_value, current_attr_value)
