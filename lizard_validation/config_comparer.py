@@ -47,11 +47,11 @@ class ConfigComparer(object):
     """
     def __init__(self):
         tmp = AreaConfig()
-        tmp.open_dbf = lambda config: DbfWrapper(config.area_dbf)
+        tmp.open_database = lambda config: DbfWrapper(config.area_dbf)
         self.get_new_attrs = tmp.as_dict
 
         tmp = AreaConfig()
-        tmp.open_dbf = lambda config: DatabaseWrapper(config)
+        tmp.open_database = lambda config: DatabaseWrapper(config)
         self.get_current_attrs = tmp.as_dict
 
     def compare(self, config):
@@ -107,7 +107,7 @@ class AreaConfig(object):
         """Return the area attributes of the specified configuration."""
         attrs = {}
         try:
-            open_dbf = self.open_dbf(config)
+            open_dbf = self.open_database(config)
             for record in open_dbf.get_records():
                 try:
                     if record['GAFIDENT'] == config.area.ident:

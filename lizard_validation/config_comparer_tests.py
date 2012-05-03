@@ -82,7 +82,7 @@ class AreaConfigTestSuite(TestCase):
         record = {'GAFIDENT': '3201', 'DIEPTE': ' 1.17'}
         dbf = Mock()
         dbf.get_records = lambda: [record]
-        self.attrs_retriever.open_dbf = Mock(return_value=dbf)
+        self.attrs_retriever.open_database = Mock(return_value=dbf)
 
     def test_a(self):
         """Test the retrieval of a single record."""
@@ -100,19 +100,19 @@ class AreaConfigTestSuite(TestCase):
         record = {'DIEPTE': ' 1.17'}
         dbf = Mock()
         dbf.get_records = lambda: [record]
-        self.attrs_retriever.open_dbf = Mock(return_value=dbf)
+        self.attrs_retriever.open_database = Mock(return_value=dbf)
         attrs = self.attrs_retriever.as_dict(self.config)
         self.assertEqual({}, attrs)
 
     def test_d(self):
         """Test the records are retrieved from the right file."""
         self.attrs_retriever.as_dict(self.config)
-        args, kwargs = self.attrs_retriever.open_dbf.call_args
+        args, kwargs = self.attrs_retriever.open_database.call_args
         self.assertEqual(self.config, args[0])
 
     def test_e(self):
         """Test the open DBF file is closed."""
         self.attrs_retriever.as_dict(self.config)
-        mock_calls = self.attrs_retriever.open_dbf().mock_calls
+        mock_calls = self.attrs_retriever.open_database().mock_calls
         name, args, kwargs = mock_calls[-1]
         self.assertTrue('close' == name and () == args and {} == kwargs)
