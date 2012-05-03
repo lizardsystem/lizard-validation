@@ -99,12 +99,17 @@ class AreaConfigDbf(object):
     """Implements the retrieval of the area record of a configuration."""
 
     def as_dict(self, config):
-        """Return the area record of the given configuration as a dict."""
+        """Return the area attributes of the given configuration."""
         attrs = {}
         try:
             for record in self.retrieve_records(config):
-                if record['GAFIDENT'] == config.area.ident:
-                    attrs = record
+                try:
+                    if record['GAFIDENT'] == config.area.ident:
+                        attrs = record
+                        break
+                except KeyError:
+                    logger.warning("area configuration file '%s' does not have "
+                                   "a GAFIDENT field", config.area_dbf)
                     break
         except IOError:
             logger.warning("area configuration file '%s' does not exist",
@@ -121,6 +126,7 @@ class AreaConfigDbf(object):
     def retrieve_records(self, config):
         for rec in self.dbf_file:
             yield rec
+
 
 class ESFConfig(AreaConfigDbf):
 

@@ -98,8 +98,9 @@ class AreaConfigDbfTestSuite(TestCase):
         args, kwargs = self.attrs_retriever.retrieve_records.call_args
         self.assertEqual(self.config, args[0])
 
-    # def test_c(self):
-    #     """Test the retrieval of records without a GAFIDENT field."""
-    #     self.area_dbf.retrieve_records = Mock(return_value=[{'DIEPTE': ' 1.17'}])
-    #     area2attrs = self.area_dbf.as_dict(self.config)
-    #     self.assertEqual(0, len(area2attrs))
+    def test_d(self):
+        """Test the retrieval of records without a GAFIDENT field."""
+        record = {'DIEPTE': ' 1.17'}
+        self.attrs_retriever.retrieve_records = Mock(return_value=[record])
+        attrs = self.attrs_retriever.as_dict(self.config)
+        self.assertEqual({}, attrs)
