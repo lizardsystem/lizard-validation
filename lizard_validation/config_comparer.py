@@ -104,7 +104,7 @@ class AreaConfigDbf(object):
     """Implements the retrieval of the area record of a configuration."""
 
     def as_dict(self, config):
-        """Return the area attributes of the given configuration."""
+        """Return the area attributes of the specified configuration."""
         attrs = {}
         try:
             open_dbf = self.open_dbf(config)
@@ -130,8 +130,8 @@ class AreaConfigDbf(object):
                            config.area.ident)
         return attrs
 
-    def open_dbf(self, config):
-        """Return an interface to the open DBF file with the given name.
+    def open_database(self, config):
+        """Return an interface to the open database for the given configuration.
 
         This method is not implemented here and should be set through
         dependency injection.
@@ -141,31 +141,42 @@ class AreaConfigDbf(object):
 
 
 class DbfWrapper(object):
+    """Implements the retrieval of the records of a single DBF."""
 
     def __init__(self, file_name):
+        """Open the DBF whose records should be retrieved."""
         self.dbf = dbf.Dbf(file_name)
 
     def close(self):
+        """Close the DBF."""
         self.dbf.close()
 
     def get_records(self):
+        """Return the records of the open DBF.
+
+        This method returns each record as a dict that maps attribute name to
+        attribute value.
+
+        """
         for record in self.dbf:
             yield record.asDict()
 
 
 class DatabaseWrapper(object):
+    """Implements the retrieval of the ESF records from the Django database."""
 
     def __init__(self, config):
+        """Set the configuration whose ESF records should be retrieved."""
         self.config = config
 
     def close(self):
         pass
 
     def get_records(self):
-        """Return the list of records from the given configuration.
+        """Return the records from the given configuration.
 
-        Each record is specified as a dict from attribute name to attribute
-        value.
+        This method returns each record as a dict that maps attribute name to
+        attribute value.
 
         """
         exporter = DBFExporterToDict()
