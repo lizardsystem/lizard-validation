@@ -38,72 +38,89 @@ class Diff(object):
 
 
 class ConfigComparer(object):
+    """Implements the functionality to compare two ESF configurations.
 
+    One of the ESF configurations, the 'new' one, is retrieved from a DBF
+    file. The other ESF configuration, the 'current' one, is retrieved from the
+    Django database.
+
+    """
     def __init__(self):
-        self.get_candidate_config_as_dict = AreaConfigDbf().as_dict
-        self.get_current_config_as_dict = ESFConfig().as_dict
+        self.get_new_attrs = AreaConfigDbf().as_dict
+        self.get_current_attrs = ESFConfig().as_dict
 
     def compare(self, config):
-        """Return the differences for the given configuration."""
-        candidate = self.get_candidate_config_as_dict(config)
-        current = self.get_current_config_as_dict(config)
-        diff = Diff()
-        for area_ident, area_attrs in candidate.items():
-            try:
-                current_attrs = current[area_ident]
-            except KeyError:
-                diff.new_areas.append(area_ident)
-                continue
-            for attr_name, attr_value in area_attrs.items():
-                current_attr_value = current_attrs.get(attr_name, _('not present'))
-                if attr_value != current_attr_value:
-                    diff_for_key = diff.changed_areas.setdefault(area_ident, {})
-                    diff_for_key[attr_name] = (attr_value, current_attr_value)
+        """Return the dict of differences for the given configuration.
+
+        The dict maps attribute names to a tuple of two values: the first value
+        specifies the new attribute value, the second value specifies the
+        current attribute value.
+
+        """
+        new_attrs = self.get_new_attrs(config)
+        current_attrs = self.get_current_attrs(config)
+        diff = {}
+        for new_attr_name, new_attr_value in new_attrs.items():
+            current_attr_value = current_attrs.get(new_attr_name, _('not present'))
+            if new_attr_value != current_attr_value:
+                diff[new_attr_name] = \
+                    (new_attr_value, current_attr_value)
+        for current_attr_name, current_attr_value in current_attrs.items():
+            if current_attr_name not in new_attrs.keys():
+                diff[current_attr_name] = (_('not present'), current_attr_value)
+
         return diff
 
-    def get_candidate_config_as_dict(self, config):
+    def get_new_attrs(self, config):
+        """Return the dict of attributes of the new configuration.
+
+        The new configuration is stored in a DBF file which is specified by the
+        config parameter, which is a ConfigurationToValidate.
+
+        This method is not implemented here and should be set through
+        dependency injection.
+
+        """
         pass
 
-    def get_current_config_as_dict(self, config):
+    def get_current_attrs(self, config):
+        """Return the dict of attributes of the current configuration.
+
+        The current configuration is stored in the Django database.
+
+        This method is not implemented here and should be set through
+        dependency injection.
+
+        """
         pass
 
 
 class AreaConfigDbf(object):
-    """Implements the retrieval of the area records of a configuration."""
+    """Implements the retrieval of the area record of a configuration."""
 
     def as_dict(self, config):
-        """Return the dict of area records from the given configuration.
-
-        The dict maps the value of the GAFIDENT field of each area record to
-        each record.
-
-        """
-        result = {}
-        for record in self.retrieve_records(config):
-            try:
-                result[record['GAFIDENT']] = record
-            except KeyError:
-                logger.warning("area configuration file '%s' does not have a "
-                               "GAFIDENT field", config.area_dbf)
-                break
-        return result
-
-    def retrieve_records(self, config):
-        """Return the list of records from the given configuration.
-
-        Each record is specified as a dict from attribute name to attribute
-        value.
-
-        """
-        records = []
+        """Return the area record of the given configuration as a dict."""
+        attrs = {}
         try:
-            records = [rec.asDict() for rec in dbf.Dbf(config.area_dbf)]
+            for record in self.retrieve_records(config):
+                if record['GAFIDENT'] == config.area.ident:
+                    attrs = record
+                    break
         except IOError:
             logger.warning("area configuration file '%s' does not exist",
                            config.area_dbf)
-        return records
+        if attrs == {}:
+            logger.warning("area configuration file '%s' does not have a "
+                           "%s configuration for area '%s' (%s)",
+                           config.area_dbf,
+                           config.config_type,
+                           config.area.name,
+                           config.area.ident)
+        return attrs
 
-
+    def retrieve_records(self, config):
+        for rec in self.dbf_file:
+            yield rec
 
 class ESFConfig(AreaConfigDbf):
 
