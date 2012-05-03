@@ -11,7 +11,6 @@ from unittest import TestCase
 
 from django.utils.translation import ugettext as _
 
-from mock import MagicMock
 from mock import Mock
 
 from lizard_area.models import Area
