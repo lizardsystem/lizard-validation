@@ -15,6 +15,7 @@ install_requires = [
     'django-nose',
     'lizard-portal',
     'lizard-ui >= 3.0',
+    'lizard-wbconfiguration',
     'mock',
     'pkginfo',
     ],
