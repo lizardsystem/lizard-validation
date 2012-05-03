@@ -108,7 +108,7 @@ class AreaConfigDbfTestSuite(TestCase):
         """Test the records are retrieved from the right file."""
         self.attrs_retriever.as_dict(self.config)
         args, kwargs = self.attrs_retriever.open_dbf.call_args
-        self.assertEqual(self.config.area_dbf, args[0])
+        self.assertEqual(self.config, args[0])
 
     def test_e(self):
         """Test the open DBF file is closed."""
