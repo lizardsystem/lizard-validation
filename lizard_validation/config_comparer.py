@@ -46,11 +46,11 @@ class ConfigComparer(object):
 
     """
     def __init__(self):
-        tmp = AreaConfigDbf()
+        tmp = AreaConfig()
         tmp.open_dbf = lambda config: DbfWrapper(config.area_dbf)
         self.get_new_attrs = tmp.as_dict
 
-        tmp = AreaConfigDbf()
+        tmp = AreaConfig()
         tmp.open_dbf = lambda config: DatabaseWrapper(config)
         self.get_current_attrs = tmp.as_dict
 
@@ -100,7 +100,7 @@ class ConfigComparer(object):
         pass
 
 
-class AreaConfigDbf(object):
+class AreaConfig(object):
     """Implements the retrieval of the area record of a configuration."""
 
     def as_dict(self, config):

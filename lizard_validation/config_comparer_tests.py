@@ -16,7 +16,7 @@ from mock import Mock
 
 from lizard_area.models import Area
 from lizard_portal.configurations_retriever import ConfigurationToValidate
-from lizard_validation.config_comparer import AreaConfigDbf
+from lizard_validation.config_comparer import AreaConfig
 from lizard_validation.config_comparer import ConfigComparer
 
 logger = logging.getLogger(__name__)
@@ -72,13 +72,13 @@ class ConfigComparerTestSuite(TestCase):
         self.assertEqual({}, diff)
 
 
-class AreaConfigDbfTestSuite(TestCase):
+class AreaConfigTestSuite(TestCase):
 
     def setUp(self):
         self.config = ConfigurationToValidate()
         self.config.area = Area()
         self.config.area.ident = '3201'
-        self.attrs_retriever = AreaConfigDbf()
+        self.attrs_retriever = AreaConfig()
         record = {'GAFIDENT': '3201', 'DIEPTE': ' 1.17'}
         dbf = Mock()
         dbf.get_records = lambda: [record]
