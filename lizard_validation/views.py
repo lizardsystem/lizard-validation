@@ -8,6 +8,7 @@ from django.template import RequestContext
 
 from lizard_portal.models import ConfigurationToValidate
 from lizard_validation.config_comparer import ConfigComparer
+from lizard_validation.config_comparer import create_wb_comparer
 
 logger = logging.getLogger(__name__)
 
@@ -19,20 +20,22 @@ def view_config_diff(request, area_name, config_type,
     config = get_object_or_404(ConfigurationToValidate,
         area__name=area_name, config_type=config_type)
 
-    if config_type != 'waterbalans':
+    if config_type == 'waterbalans':
 
-        diff = ConfigComparer().compare(config)
+        diff = create_wb_comparer().compare(config)
         return render_to_response(
-            template,
+            'lizard_validation/wb_config_diff.html',
             { 'name': config.area.name,
               'type': config.config_type,
               'diff': diff,
               },
             context_instance=RequestContext(request))
 
+    diff = ConfigComparer().compare(config)
     return render_to_response(
-        'lizard_validation/wb_config_diff.html',
+        template,
         { 'name': config.area.name,
           'type': config.config_type,
+          'diff': diff,
           },
         context_instance=RequestContext(request))

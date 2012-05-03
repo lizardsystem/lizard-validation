@@ -1,4 +1,26 @@
 <div id="textual" class='lizard'>
-  <h2>{{type}} configuratie</h2>
-  Het vergelijken van waterbalans configuraties wordt nog niet ondersteund.
+  <h2>{{name}} {{type}} configuratie</h2>
+  <h3>Aan-/afvoergebied</h3>
+  <table class="lizard">
+    <thead>
+      <tr>
+        <th>veldnaam</th><th>nieuwe waarde</th><th>bestaande waarde</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for name, value_diff in diff.items %}
+      <tr>
+        <td>{{name}}</td><td>{{value_diff.0}}</td><td>{{value_diff.1}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <P> </P>
+
+  <h3>Grondwatergebieden</h3>
+  <P> </P>
+
+  <h3>Kunstwerken</h3>
+  <P> </P>
+
 </div>

@@ -13,6 +13,7 @@ from dbfpy import dbf
 
 from lizard_esf.export_dbf import DBFExporterToDict
 from lizard_esf.export_dbf import DbfFile
+from lizard_wbconfiguration.export_dbf import WbExporterToDict
 
 logger = logging.getLogger(__name__)
 
@@ -184,3 +185,35 @@ class DatabaseWrapper(object):
         exporter.export_esf_configurations(self.config.data_set, "don't care",
             dbf_file, "don't care")
         return exporter.out
+
+class WaterbalanceFromDatabaseRetriever(object):
+    """Implements the retrieval of the aan-/afvoer records from the Django database."""
+
+    def __init__(self, config):
+        """Set the configuration whose waterbalance aan-/afvoer records should
+        be retrieved."""
+        self.config = config
+
+    def close(self):
+        pass
+
+    def get_records(self):
+        """Return the records from the given configuration.
+
+        This method returns each record as a dict that maps attribute name to
+        attribute value.
+
+        """
+        exporter = WbExporterToDict()
+        exporter.export_areaconfiguration(self.config.data_set, "don't care",
+            "don't care")
+        print exporter
+        return exporter.out
+
+
+def create_wb_comparer():
+    comparer = ConfigComparer()
+    tmp = AreaConfig()
+    tmp.open_database = lambda config: WaterbalanceFromDatabaseRetriever(config)
+    comparer.get_current_attrs = tmp.as_dict
+    return comparer
