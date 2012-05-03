@@ -47,7 +47,10 @@ class ConfigComparer(object):
     """
     def __init__(self):
         self.get_new_attrs = AreaConfigDbf().as_dict
-        self.get_current_attrs = ESFConfig().as_dict
+
+        tmp = AreaConfigDbf()
+        tmp.open_dbf = lambda config: DatabaseWrapper(config)
+        self.get_current_attrs = tmp.as_dict
 
     def compare(self, config):
         """Return the dict of differences for the given configuration.
@@ -58,6 +61,7 @@ class ConfigComparer(object):
 
         """
         new_attrs = self.get_new_attrs(config)
+        print new_attrs
         current_attrs = self.get_current_attrs(config)
         diff = {}
         for new_attr_name, new_attr_value in new_attrs.items():
@@ -68,7 +72,6 @@ class ConfigComparer(object):
         for current_attr_name, current_attr_value in current_attrs.items():
             if current_attr_name not in new_attrs.keys():
                 diff[current_attr_name] = (_('not present'), current_attr_value)
-
         return diff
 
     def get_new_attrs(self, config):
@@ -95,6 +98,19 @@ class ConfigComparer(object):
         pass
 
 
+class DbfWrapper(object):
+
+    def __init__(self, file_name):
+        self.dbf = dbf.Dbf(file_name)
+
+    def close(self):
+        self.dbf.close()
+
+    def get_records(self):
+        for record in self.dbf:
+            yield record.asDict()
+
+
 class AreaConfigDbf(object):
     """Implements the retrieval of the area record of a configuration."""
 
@@ -102,7 +118,8 @@ class AreaConfigDbf(object):
         """Return the area attributes of the given configuration."""
         attrs = {}
         try:
-            for record in self.retrieve_records(config):
+            open_dbf = self.open_dbf(config)
+            for record in open_dbf.get_records():
                 try:
                     if record['GAFIDENT'] == config.area.ident:
                         attrs = record
@@ -111,6 +128,7 @@ class AreaConfigDbf(object):
                     logger.warning("area configuration file '%s' does not have "
                                    "a GAFIDENT field", config.area_dbf)
                     break
+            open_dbf.close()
         except IOError:
             logger.warning("area configuration file '%s' does not exist",
                            config.area_dbf)
@@ -123,14 +141,20 @@ class AreaConfigDbf(object):
                            config.area.ident)
         return attrs
 
-    def retrieve_records(self, config):
-        for rec in self.dbf_file:
-            yield rec
+    def open_dbf(self, config):
+        """Return an interface to the open DBF file with the given name."""
+        return DbfWrapper(config.area_dbf)
 
 
-class ESFConfig(AreaConfigDbf):
+class DatabaseWrapper(object):
 
-    def retrieve_records(self, config):
+    def __init__(self, config):
+        self.config = config
+
+    def close(self):
+        pass
+
+    def get_records(self):
         """Return the list of records from the given configuration.
 
         Each record is specified as a dict from attribute name to attribute
@@ -138,7 +162,7 @@ class ESFConfig(AreaConfigDbf):
 
         """
         exporter = DBFExporterToDict()
-        dbf_file = DbfFile.objects.get(name=config.config_type)
-        exporter.export_esf_configurations(config.data_set, "don't care",
+        dbf_file = DbfFile.objects.get(name=self.config.config_type)
+        exporter.export_esf_configurations(self.config.data_set, "don't care",
             dbf_file, "don't care")
         return exporter.out

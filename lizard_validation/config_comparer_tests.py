@@ -11,6 +11,7 @@ from unittest import TestCase
 
 from django.utils.translation import ugettext as _
 
+from mock import MagicMock
 from mock import Mock
 
 from lizard_area.models import Area
@@ -79,7 +80,9 @@ class AreaConfigDbfTestSuite(TestCase):
         self.config.area.ident = '3201'
         self.attrs_retriever = AreaConfigDbf()
         record = {'GAFIDENT': '3201', 'DIEPTE': ' 1.17'}
-        self.attrs_retriever.retrieve_records = Mock(return_value=[record])
+        dbf = Mock()
+        dbf.get_records = lambda: [record]
+        self.attrs_retriever.open_dbf = Mock(return_value=dbf)
 
     def test_a(self):
         """Test the retrieval of a single record."""
@@ -93,14 +96,23 @@ class AreaConfigDbfTestSuite(TestCase):
         self.assertEqual({}, attrs)
 
     def test_c(self):
-        """Test the records are retrieved from the right file."""
-        self.attrs_retriever.as_dict(self.config)
-        args, kwargs = self.attrs_retriever.retrieve_records.call_args
-        self.assertEqual(self.config, args[0])
-
-    def test_d(self):
         """Test the retrieval of records without a GAFIDENT field."""
         record = {'DIEPTE': ' 1.17'}
-        self.attrs_retriever.retrieve_records = Mock(return_value=[record])
+        dbf = Mock()
+        dbf.get_records = lambda: [record]
+        self.attrs_retriever.open_dbf = Mock(return_value=dbf)
         attrs = self.attrs_retriever.as_dict(self.config)
         self.assertEqual({}, attrs)
+
+    def test_d(self):
+        """Test the records are retrieved from the right file."""
+        self.attrs_retriever.as_dict(self.config)
+        args, kwargs = self.attrs_retriever.open_dbf.call_args
+        self.assertEqual(self.config.area_dbf, args[0])
+
+    def test_e(self):
+        """Test the open DBF file is closed."""
+        self.attrs_retriever.as_dict(self.config)
+        mock_calls = self.attrs_retriever.open_dbf().mock_calls
+        name, args, kwargs = mock_calls[-1]
+        self.assertTrue('close' == name and () == args and {} == kwargs)
