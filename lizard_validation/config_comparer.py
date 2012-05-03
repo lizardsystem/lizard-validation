@@ -46,7 +46,9 @@ class ConfigComparer(object):
 
     """
     def __init__(self):
-        self.get_new_attrs = AreaConfigDbf().as_dict
+        tmp = AreaConfigDbf()
+        tmp.open_dbf = lambda config: DbfWrapper(config.area_dbf)
+        self.get_new_attrs = tmp.as_dict
 
         tmp = AreaConfigDbf()
         tmp.open_dbf = lambda config: DatabaseWrapper(config)
@@ -98,19 +100,6 @@ class ConfigComparer(object):
         pass
 
 
-class DbfWrapper(object):
-
-    def __init__(self, file_name):
-        self.dbf = dbf.Dbf(file_name)
-
-    def close(self):
-        self.dbf.close()
-
-    def get_records(self):
-        for record in self.dbf:
-            yield record.asDict()
-
-
 class AreaConfigDbf(object):
     """Implements the retrieval of the area record of a configuration."""
 
@@ -142,8 +131,26 @@ class AreaConfigDbf(object):
         return attrs
 
     def open_dbf(self, config):
-        """Return an interface to the open DBF file with the given name."""
-        return DbfWrapper(config.area_dbf)
+        """Return an interface to the open DBF file with the given name.
+
+        This method is not implemented here and should be set through
+        dependency injection.
+
+        """
+        pass
+
+
+class DbfWrapper(object):
+
+    def __init__(self, file_name):
+        self.dbf = dbf.Dbf(file_name)
+
+    def close(self):
+        self.dbf.close()
+
+    def get_records(self):
+        for record in self.dbf:
+            yield record.asDict()
 
 
 class DatabaseWrapper(object):
