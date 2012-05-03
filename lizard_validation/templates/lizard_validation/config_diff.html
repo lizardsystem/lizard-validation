@@ -1,7 +1,5 @@
 <div id="textual" class='lizard'>
-  <h2>{{type}} configuratie</h2>
-  {% for area, field_diffs in diff.changed_areas.items %}
-  <h3>{{name}}</h3>
+  <h2>{{name}} {{type}} configuratie</h2>
   <table class="lizard">
     <thead>
       <tr>
@@ -9,12 +7,11 @@
       </tr>
     </thead>
     <tbody>
-      {% for name, value_diff in field_diffs.items %}
+      {% for name, value_diff in diff.items %}
       <tr>
         <td>{{name}}</td><td>{{value_diff.0}}</td><td>{{value_diff.1}}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
-  {% endfor %}
 </div>
