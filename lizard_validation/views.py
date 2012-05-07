@@ -8,7 +8,8 @@ from django.template import RequestContext
 
 from lizard_portal.models import ConfigurationToValidate
 from lizard_validation.config_comparer import ConfigComparer
-from lizard_validation.config_comparer import create_wb_comparer
+from lizard_validation.config_comparer import create_wb_area_comparer
+from lizard_validation.config_comparer import create_wb_bucket_comparer
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +23,19 @@ def view_config_diff(request, area_name, config_type,
 
     if config_type == 'waterbalans':
 
-        diff = create_wb_comparer().compare(config)
+        diff = create_wb_area_comparer().compare(config)
+        # bucket_diff = {
+        #     '3201-DGW-1': {'SURFTYPE': (0.0, 0.1)},
+        #     '3201-DGW-2': {'IS_COMP': (True, False)},
+        #     }
+        bucket_diff = create_wb_bucket_comparer().compare(config)
+        print bucket_diff
         return render_to_response(
             'lizard_validation/wb_config_diff.html',
             { 'name': config.area.name,
               'type': config.config_type,
               'diff': diff,
+              'bucket_diff': bucket_diff,
               },
             context_instance=RequestContext(request))
 

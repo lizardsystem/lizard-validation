@@ -16,6 +16,7 @@ from mock import Mock
 from lizard_area.models import Area
 from lizard_portal.configurations_retriever import ConfigurationToValidate
 from lizard_validation.config_comparer import AreaConfig
+from lizard_validation.config_comparer import BucketConfig
 from lizard_validation.config_comparer import ConfigComparer
 
 logger = logging.getLogger(__name__)
@@ -115,3 +116,60 @@ class AreaConfigTestSuite(TestCase):
         mock_calls = self.attrs_retriever.open_database().mock_calls
         name, args, kwargs = mock_calls[-1]
         self.assertTrue('close' == name and () == args and {} == kwargs)
+
+
+class BucketConfigTestSuite(TestCase):
+
+    def setUp(self):
+        self.config = ConfigurationToValidate()
+        self.config.area = Area()
+        self.config.area.ident = '3201'
+        self.attrs_retriever = BucketConfig()
+        record = {'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'}
+        dbf = Mock()
+        dbf.get_records = lambda: [record]
+        self.attrs_retriever.open_database = Mock(return_value=dbf)
+
+    def test_a(self):
+        """Test the retrieval of a single bucket record."""
+        attrs = self.attrs_retriever.as_dict(self.config)
+        self.assertEqual({'3201-DGW-1': {'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'}}, attrs)
+
+
+class dict_compare_TestSuite(TestCase):
+
+    def test_a(self):
+        """Test the comparison of a simple dict of dict.
+
+        The fields are present for both buckets but with different values.
+
+        """
+        comparer = ConfigComparer()
+        d = {'3201-DGW-1': {'SURFTYPE': 0.0}}
+        e = {'3201-DGW-1': {'SURFTYPE': 0.1}}
+        diff = comparer.dict_compare(d, e)
+        self.assertEqual({'3201-DGW-1': {'SURFTYPE': (0.0, 0.1)}}, diff)
+
+    def test_b(self):
+        """Test the comparison of a simple dict of dict.
+
+        The field is only present for one bucket.
+
+        """
+        comparer = ConfigComparer()
+        d = {'3201-DGW-1': {'SURFTYPE': 0.0}}
+        e = {'3201-DGW-1': {}}
+        diff = comparer.dict_compare(d, e)
+        self.assertEqual({'3201-DGW-1': {'SURFTYPE': (0.0, _('not present'))}}, diff)
+
+    def test_c(self):
+        """Test the comparison of a simple dict of dict.
+
+        The bucket is only present in the new configuration.
+
+        """
+        comparer = ConfigComparer()
+        d = {'3201-DGW-1': {'SURFTYPE': 0.0}}
+        e = {}
+        diff = comparer.dict_compare(d, e)
+        self.assertEqual({'3201-DGW-1': {'SURFTYPE': (0.0, _('not present'))}}, diff)

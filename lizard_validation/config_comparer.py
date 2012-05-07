@@ -64,14 +64,22 @@ class ConfigComparer(object):
 
         """
         new_attrs = self.get_new_attrs(config)
-        print new_attrs
         current_attrs = self.get_current_attrs(config)
+        return self.dict_compare(new_attrs, current_attrs)
+
+    def dict_compare(self, new_attrs, current_attrs):
         diff = {}
         for new_attr_name, new_attr_value in new_attrs.items():
             current_attr_value = current_attrs.get(new_attr_name, _('not present'))
             if new_attr_value != current_attr_value:
-                diff[new_attr_name] = \
-                    (new_attr_value, current_attr_value)
+                if type(new_attr_value) == dict:
+                    if current_attr_value == _('not present'):
+                        current_attr_value = {}
+                    diff[new_attr_name] = \
+                        self.dict_compare(new_attr_value, current_attr_value)
+                else:
+                    diff[new_attr_name] = \
+                        (new_attr_value, current_attr_value)
         for current_attr_name, current_attr_value in current_attrs.items():
             if current_attr_name not in new_attrs.keys():
                 diff[current_attr_name] = (_('not present'), current_attr_value)
@@ -141,6 +149,39 @@ class AreaConfig(object):
         pass
 
 
+class BucketConfig(object):
+    """Implements the retrieval of the bucket records of a configuration."""
+
+    def as_dict(self, config):
+        """Return the buckets and their attributes of the specified configuration."""
+        attrs = {}
+        try:
+            open_dbf = self.open_database(config)
+            for record in open_dbf.get_records():
+                try:
+                    if record['GEBIED'] == config.area.ident:
+                        attrs[record['ID']] = record
+                        break
+                except KeyError:
+                    logger.warning("bucket configuration file '%s' does not have "
+                                   "a GEBIED field", config.area_dbf)
+                    break
+            open_dbf.close()
+        except IOError:
+            logger.warning("bucket configuration file '%s' does not exist",
+                           config.grondwatergebieden_dbf)
+        return attrs
+
+    def open_database(self, config):
+        """Return an interface to the open database for the given configuration.
+
+        This method is not implemented here and should be set through
+        dependency injection.
+
+        """
+        pass
+
+
 class DbfWrapper(object):
     """Implements the retrieval of the records of a single DBF."""
 
@@ -189,9 +230,10 @@ class DatabaseWrapper(object):
 class WaterbalanceFromDatabaseRetriever(object):
     """Implements the retrieval of the aan-/afvoer records from the Django database."""
 
-    def __init__(self, config):
+    def __init__(self, export_method_name, config):
         """Set the configuration whose waterbalance aan-/afvoer records should
         be retrieved."""
+        self.export_method_name = export_method_name
         self.config = config
 
     def close(self):
@@ -205,15 +247,24 @@ class WaterbalanceFromDatabaseRetriever(object):
 
         """
         exporter = WbExporterToDict()
-        exporter.export_areaconfiguration(self.config.data_set, "don't care",
-            "don't care")
-        print exporter
+        export = getattr(exporter, self.export_method_name)
+        export(self.config.data_set, "don't care", "don't care")
         return exporter.out
 
 
-def create_wb_comparer():
+def create_wb_area_comparer():
     comparer = ConfigComparer()
     tmp = AreaConfig()
-    tmp.open_database = lambda config: WaterbalanceFromDatabaseRetriever(config)
+    tmp.open_database = lambda config: WaterbalanceFromDatabaseRetriever('export_areaconfiguration', config)
+    comparer.get_current_attrs = tmp.as_dict
+    return comparer
+
+def create_wb_bucket_comparer():
+    comparer = ConfigComparer()
+    tmp = BucketConfig()
+    tmp.open_database = lambda config: DbfWrapper(config.grondwatergebieden_dbf)
+    comparer.get_new_attrs = tmp.as_dict
+    tmp = BucketConfig()
+    tmp.open_database = lambda config: WaterbalanceFromDatabaseRetriever('export_bucketconfiguration', config)
     comparer.get_current_attrs = tmp.as_dict
     return comparer
