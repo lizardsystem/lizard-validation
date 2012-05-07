@@ -20,26 +20,6 @@ from lizard_wbconfiguration.export_dbf import WbExporterToDict
 logger = logging.getLogger(__name__)
 
 
-class Diff(object):
-    """Describes the differences between new and current configurations.
-
-    Instance parameters:
-      *new_areas*
-         list of area identifications only specified in the new configurations
-      *changed_areas*
-         dict of area identification to attribute name to tuple of new and
-         current attribute values
-
-    """
-    def __init__(self):
-        self.new_areas = []
-        self.changed_areas = {}
-
-    def __eq__(self, other):
-        return self.new_areas == other.new_areas and \
-            self.changed_areas == other.changed_areas
-
-
 class ConfigComparer(object):
     """Implements the functionality to compare two ESF configurations.
 
@@ -129,33 +109,22 @@ class ConfigComparer(object):
 
 
 class AreaConfig(object):
-    """Implements the retrieval of the area record of a configuration."""
+    """Implements the retrieval of the single area record of a configuration."""
 
     def as_dict(self, config):
         """Return the area attributes of the specified configuration."""
         attrs = {}
-        try:
-            open_dbf = self.open_database(config)
-            for record in open_dbf.get_records():
-                try:
-                    if record['GAFIDENT'] == config.area.ident:
-                        attrs = record
-                        break
-                except KeyError:
-                    logger.warning("area configuration file '%s' does not have "
-                                   "a GAFIDENT field", config.area_dbf)
+        open_dbf = self.open_database(config)
+        for record in open_dbf.get_records():
+            try:
+                if record['GAFIDENT'] == config.area.ident:
+                    attrs = record
                     break
-            open_dbf.close()
-        except IOError:
-            logger.warning("area configuration file '%s' does not exist",
-                           config.area_dbf)
-        if attrs == {}:
-            logger.warning("area configuration file '%s' does not have a "
-                           "%s configuration for area '%s' (%s)",
-                           config.area_dbf,
-                           config.config_type,
-                           config.area.name,
-                           config.area.ident)
+            except KeyError:
+                logger.warning("area configuration file for '%s' does not have "
+                               "a GAFIDENT field", config.area)
+                break
+        open_dbf.close()
         return attrs
 
     def open_database(self, config):
@@ -169,25 +138,21 @@ class AreaConfig(object):
 
 
 class BucketConfig(object):
-    """Implements the retrieval of the bucket records of a configuration."""
+    """Implements the retrieval of bucket records of a configuration."""
 
     def as_dict(self, config):
         """Return the buckets and their attributes of the specified configuration."""
         attrs = {}
-        try:
-            open_dbf = self.open_database(config)
-            for record in open_dbf.get_records():
-                try:
-                    if record['GEBIED'] == config.area.ident:
-                        attrs[record['ID']] = record
-                except KeyError:
-                    logger.warning("bucket configuration file '%s' does not have "
-                                   "a GEBIED field", config.area_dbf)
-                    break
-            open_dbf.close()
-        except IOError:
-            logger.warning("bucket configuration file '%s' does not exist",
-                           config.grondwatergebieden_dbf)
+        open_dbf = self.open_database(config)
+        for record in open_dbf.get_records():
+            try:
+                if record['GEBIED'] == config.area.ident:
+                    attrs[record['ID']] = record
+            except KeyError:
+                logger.warning("configuration file for '%s' does not have a "
+                               "GEBIED or ID field", config.area)
+                break
+        open_dbf.close()
         return attrs
 
     def open_database(self, config):
@@ -201,11 +166,22 @@ class BucketConfig(object):
 
 
 class DbfWrapper(object):
-    """Implements the retrieval of the records of a single DBF."""
+    """Implements a wrapper around a single DBF file.
+
+    This class uses dbfpy to implement access to the DBF."""
 
     def __init__(self, file_name):
-        """Open the DBF whose records should be retrieved."""
-        self.dbf = dbf.Dbf(file_name)
+        """Open the DBF with the given name.
+
+        This method uses dbfpy.dbf.Dbf to open the DBF. That method raises an
+        IOError when the DBGF cannot be opened, which this method reraises.
+
+        """
+        try:
+            self.dbf = dbf.Dbf(file_name)
+        except IOError:
+            logger.warning("configuration file '%s' cannot be opened", file_name)
+            raise
 
     def close(self):
         """Close the DBF."""
@@ -223,10 +199,17 @@ class DbfWrapper(object):
 
 
 class DatabaseWrapper(object):
-    """Implements the retrieval of the ESF records from the Django database."""
+    """Implements a wrapper around the database to retrieve configurations.
 
+    This wrapper is implemented to retrieve ESF configurations.
+
+    """
     def __init__(self, config):
-        """Set the configuration whose ESF records should be retrieved."""
+        """Set the configuration to specify the records to retrieve.
+
+        The given config is a ConfigurationToValidate.
+
+        """
         self.config = config
 
     def close(self):
@@ -238,6 +221,12 @@ class DatabaseWrapper(object):
         This method returns each record as a dict that maps attribute name to
         attribute value.
 
+        Although the configuration also specifies the area, this method
+        disregards that information and returns all records with the specified
+        (configuration) data set and type. The reason for this is that the code
+        used to retrieve the records, and which is used 'as is', only considers
+        the data set and type.
+
         """
         exporter = DBFExporterToDict()
         dbf_file = DbfFile.objects.get(name=self.config.config_type)
@@ -246,11 +235,14 @@ class DatabaseWrapper(object):
         return exporter.out
 
 class WaterbalanceFromDatabaseRetriever(object):
-    """Implements the retrieval of the aan-/afvoer records from the Django database."""
+    """Implements a wrapper around the database to retrieve configurations.
+
+    This wrapper is implemented to retrieve water balance configurations.
+
+    """
 
     def __init__(self, export_method_name, config):
-        """Set the configuration whose waterbalance aan-/afvoer records should
-        be retrieved."""
+        """Specifies which configuration records should be retrieved."""
         self.export_method_name = export_method_name
         self.config = config
 
@@ -262,6 +254,12 @@ class WaterbalanceFromDatabaseRetriever(object):
 
         This method returns each record as a dict that maps attribute name to
         attribute value.
+
+        Although the configuration also specifies the area, this method
+        disregards that information and returns all records with the specified
+        (configuration) data set and type. The reason for this is that the code
+        used to retrieve the records, and which is used 'as is', only considers
+        the data set and type.
 
         """
         exporter = WbExporterToDict()
