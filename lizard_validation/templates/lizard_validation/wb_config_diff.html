@@ -37,7 +37,24 @@
   {% endfor %}
   <P> </P>
 
-  <h3>Kunstwerken</h3>
+  {% for structure, diff in structure_diff.items %}
+  <h3>Kunstwerk {{structure}}</h3>
+  <table class="lizard">
+    <thead>
+      <tr>
+        <th>veldnaam</th><th>nieuwe waarde</th><th>bestaande waarde</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for name, value_diff in diff.items %}
+      <tr>
+        <td>{{name}}</td><td>{{value_diff.0}}</td><td>{{value_diff.1}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <P> </P>
+  {% endfor %}
   <P> </P>
 
 </div>

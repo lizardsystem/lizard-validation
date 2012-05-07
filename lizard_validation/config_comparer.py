@@ -161,7 +161,6 @@ class BucketConfig(object):
                 try:
                     if record['GEBIED'] == config.area.ident:
                         attrs[record['ID']] = record
-                        break
                 except KeyError:
                     logger.warning("bucket configuration file '%s' does not have "
                                    "a GEBIED field", config.area_dbf)
@@ -266,5 +265,15 @@ def create_wb_bucket_comparer():
     comparer.get_new_attrs = tmp.as_dict
     tmp = BucketConfig()
     tmp.open_database = lambda config: WaterbalanceFromDatabaseRetriever('export_bucketconfiguration', config)
+    comparer.get_current_attrs = tmp.as_dict
+    return comparer
+
+def create_wb_structure_comparer():
+    comparer = ConfigComparer()
+    tmp = BucketConfig()
+    tmp.open_database = lambda config: DbfWrapper(config.pumpingstations_dbf)
+    comparer.get_new_attrs = tmp.as_dict
+    tmp = BucketConfig()
+    tmp.open_database = lambda config: WaterbalanceFromDatabaseRetriever('export_structureconfiguration', config)
     comparer.get_current_attrs = tmp.as_dict
     return comparer

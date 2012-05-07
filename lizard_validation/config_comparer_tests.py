@@ -125,15 +125,26 @@ class BucketConfigTestSuite(TestCase):
         self.config.area = Area()
         self.config.area.ident = '3201'
         self.attrs_retriever = BucketConfig()
+
+    def test_a(self):
+        """Test the retrieval of a single bucket record."""
         record = {'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'}
         dbf = Mock()
         dbf.get_records = lambda: [record]
         self.attrs_retriever.open_database = Mock(return_value=dbf)
-
-    def test_a(self):
-        """Test the retrieval of a single bucket record."""
         attrs = self.attrs_retriever.as_dict(self.config)
         self.assertEqual({'3201-DGW-1': {'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'}}, attrs)
+
+    def test_b(self):
+        """Test the retrieval of two bucket records."""
+        records = [{'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'},
+                   {'ID': '3201-DGW-2', 'GEBIED': '3201', 'OPPERVL': '844617'}]
+        dbf = Mock()
+        dbf.get_records = lambda: records
+        self.attrs_retriever.open_database = Mock(return_value=dbf)
+        attrs = self.attrs_retriever.as_dict(self.config)
+        self.assertEqual({'3201-DGW-1': {'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'},
+                          '3201-DGW-2': {'ID': '3201-DGW-2', 'GEBIED': '3201', 'OPPERVL': '844617'}}, attrs)
 
 
 class dict_compare_TestSuite(TestCase):
@@ -173,3 +184,17 @@ class dict_compare_TestSuite(TestCase):
         e = {}
         diff = comparer.dict_compare(d, e)
         self.assertEqual({'3201-DGW-1': {'SURFTYPE': (0.0, _('not present'))}}, diff)
+
+    def test_d(self):
+        """Test the comparison of a simple dict of dict.
+
+        The buckets are only present in the new configuration.
+
+        """
+        comparer = ConfigComparer()
+        d = {'3201-DGW-1': {'SURFTYPE': 0.0},
+             '3201-DGW-2': {'SURFTYPE': 0.0}}
+        e = {}
+        diff = comparer.dict_compare(d, e)
+        self.assertEqual({'3201-DGW-1': {'SURFTYPE': (0.0, _('not present'))},
+                          '3201-DGW-2': {'SURFTYPE': (0.0, _('not present'))}}, diff)
