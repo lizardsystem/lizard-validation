@@ -5,6 +5,8 @@
 
 # Copyright (c) 2012 Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 
+from decimal import Decimal
+
 import logging
 
 from django.utils.translation import ugettext as _
@@ -71,7 +73,7 @@ class ConfigComparer(object):
         diff = {}
         for new_attr_name, new_attr_value in new_attrs.items():
             current_attr_value = current_attrs.get(new_attr_name, _('not present'))
-            if new_attr_value != current_attr_value:
+            if self.values_differ(new_attr_value, current_attr_value):
                 if type(new_attr_value) == dict:
                     if current_attr_value == _('not present'):
                         current_attr_value = {}
@@ -84,6 +86,23 @@ class ConfigComparer(object):
             if current_attr_name not in new_attrs.keys():
                 diff[current_attr_name] = (_('not present'), current_attr_value)
         return diff
+
+    def values_differ(self, new_value, current_value):
+        """Returns True if and only if the two given values differ.
+
+        This method is necessary to be able to compare floating point values
+        retrieved from a DBF file and floating point values retrieved from the
+        database. The former have type 'float' and the latter might have type
+        decimal.Decimal. Python considers values of these two types as
+        different, regardless of their actual values.
+
+        """
+        differ = True
+        if type(new_value) == float and type(current_value) == Decimal:
+            differ = abs(new_value - float(current_value)) > 1e-6
+        else:
+            differ = new_value != current_value
+        return differ
 
     def get_new_attrs(self, config):
         """Return the dict of attributes of the new configuration.

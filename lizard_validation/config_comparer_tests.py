@@ -5,6 +5,8 @@
 
 # Copyright (c) 2012 Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 
+from decimal import Decimal
+
 import logging
 
 from unittest import TestCase
@@ -198,3 +200,9 @@ class dict_compare_TestSuite(TestCase):
         diff = comparer.dict_compare(d, e)
         self.assertEqual({'3201-DGW-1': {'SURFTYPE': (0.0, _('not present'))},
                           '3201-DGW-2': {'SURFTYPE': (0.0, _('not present'))}}, diff)
+
+def test_a():
+    """Test that a float differs from a decimal.Decimal."""
+    f = 3.14
+    d = Decimal('3.14')
+    assert f != d
