@@ -5,7 +5,8 @@ Changelog of lizard-validation
 0.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Replaces each field name in an ESF diff by its human-readable version.
+
 
 
 0.3 (2012-05-08)
