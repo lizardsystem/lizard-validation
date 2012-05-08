@@ -2,7 +2,7 @@ Changelog of lizard-validation
 ===================================================
 
 
-0.3 (unreleased)
+0.3 (2012-05-08)
 ----------------
 
 - Adds the functionality to compute and view differences in water balance
