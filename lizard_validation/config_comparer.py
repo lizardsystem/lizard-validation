@@ -14,7 +14,7 @@ from django.utils.translation import ugettext as _
 from dbfpy import dbf
 
 from lizard_esf.export_dbf import DBFExporterToDict
-from lizard_esf.export_dbf import DbfFile
+from lizard_esf.models import DbfFile
 from lizard_wbconfiguration.export_dbf import WbExporterToDict
 
 logger = logging.getLogger(__name__)
