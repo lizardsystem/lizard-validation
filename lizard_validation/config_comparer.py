@@ -140,17 +140,22 @@ class AreaConfig(object):
 class BucketConfig(object):
     """Implements the retrieval of bucket records of a configuration."""
 
+    def __init__(self, **kwargs):
+        self.area_field_name = kwargs.get('area_field_name', 'GEBIED_GW')
+        self.id_field_name = kwargs.get('id_field_name', 'ID_GW')
+
     def as_dict(self, config):
         """Return the buckets and their attributes of the specified configuration."""
         attrs = {}
         open_dbf = self.open_database(config)
         for record in open_dbf.get_records():
             try:
-                if record['GEBIED'] == config.area.ident:
-                    attrs[record['ID']] = record
+                if record[self.area_field_name] == config.area.ident:
+                    attrs[record[self.id_field_name]] = record
             except KeyError:
                 logger.warning("configuration file for '%s' does not have a "
-                               "GEBIED or ID field", config.area)
+                               "%s or %s field", config.area,
+                               self.area_field_name, self.id_field_name)
                 break
         open_dbf.close()
         return attrs
@@ -287,10 +292,10 @@ def create_wb_bucket_comparer():
 
 def create_wb_structure_comparer():
     comparer = ConfigComparer()
-    tmp = BucketConfig()
+    tmp = BucketConfig(area_field_name='GEBIED', id_field_name='ID')
     tmp.open_database = lambda config: DbfWrapper(config.pumpingstations_dbf)
     comparer.get_new_attrs = tmp.as_dict
-    tmp = BucketConfig()
+    tmp = BucketConfig(area_field_name='GEBIED', id_field_name='ID')
     tmp.open_database = lambda config: WaterbalanceFromDatabaseRetriever('export_structureconfiguration', config)
     comparer.get_current_attrs = tmp.as_dict
     return comparer

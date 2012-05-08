@@ -130,23 +130,23 @@ class BucketConfigTestSuite(TestCase):
 
     def test_a(self):
         """Test the retrieval of a single bucket record."""
-        record = {'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'}
+        record = {'ID_GW': '3201-DGW-1', 'GEBIED_GW': '3201', 'OPPERVL': '2171871'}
         dbf = Mock()
         dbf.get_records = lambda: [record]
         self.attrs_retriever.open_database = Mock(return_value=dbf)
         attrs = self.attrs_retriever.as_dict(self.config)
-        self.assertEqual({'3201-DGW-1': {'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'}}, attrs)
+        self.assertEqual({'3201-DGW-1': {'ID_GW': '3201-DGW-1', 'GEBIED_GW': '3201', 'OPPERVL': '2171871'}}, attrs)
 
     def test_b(self):
         """Test the retrieval of two bucket records."""
-        records = [{'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'},
-                   {'ID': '3201-DGW-2', 'GEBIED': '3201', 'OPPERVL': '844617'}]
+        records = [{'ID_GW': '3201-DGW-1', 'GEBIED_GW': '3201', 'OPPERVL': '2171871'},
+                   {'ID_GW': '3201-DGW-2', 'GEBIED_GW': '3201', 'OPPERVL': '844617'}]
         dbf = Mock()
         dbf.get_records = lambda: records
         self.attrs_retriever.open_database = Mock(return_value=dbf)
         attrs = self.attrs_retriever.as_dict(self.config)
-        self.assertEqual({'3201-DGW-1': {'ID': '3201-DGW-1', 'GEBIED': '3201', 'OPPERVL': '2171871'},
-                          '3201-DGW-2': {'ID': '3201-DGW-2', 'GEBIED': '3201', 'OPPERVL': '844617'}}, attrs)
+        self.assertEqual({'3201-DGW-1': {'ID_GW': '3201-DGW-1', 'GEBIED_GW': '3201', 'OPPERVL': '2171871'},
+                          '3201-DGW-2': {'ID_GW': '3201-DGW-2', 'GEBIED_GW': '3201', 'OPPERVL': '844617'}}, attrs)
 
 
 class dict_compare_TestSuite(TestCase):
