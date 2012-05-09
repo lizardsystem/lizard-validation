@@ -7,6 +7,11 @@ Changelog of lizard-validation
 
 - Replaces each field name in an ESF diff by its human-readable version.
 
+- Updates:
+  - lizard_esf to 0.21 (from 0.20)
+  - lizard_portal to 0.55 (from 0.51)
+  - lizard_wbconfiguration to 0.21 (from 0.1.16)
+
 
 0.3 (2012-05-08)
 ----------------
